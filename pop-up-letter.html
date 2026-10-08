@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>A letter for you</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400;1,6..72,500&display=swap">
+<style>
+:root{
+  --sky-a:#1b1a3b; --sky-b:#3b2c58; --sky-c:#6b4a74;
+  --paper:#fcf7f6; --ink:#3a2340; --ink-soft:#6b5470;
+  --rose:#d9778f; --peri:#9aa6e6; --env:#e9d5e6; --env-deep:#d6b9d6; --glow:#ffd9e2;
+  --scrim:rgba(14,12,30,.62); --label:#f4e9f2;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --sky-a:#f3dfe8; --sky-b:#e4d4ef; --sky-c:#cdd6f3;
+    --ink:#3a2340; --label:#4a2f55; --scrim:rgba(60,35,70,.45); --env:#fff1f6; --env-deep:#f0cfe0;
+  }
+}
+:root[data-theme="light"]{--sky-a:#f3dfe8;--sky-b:#e4d4ef;--sky-c:#cdd6f3;--label:#4a2f55;--scrim:rgba(60,35,70,.45);--env:#fff1f6;--env-deep:#f0cfe0}
+*,*::before,*::after{box-sizing:border-box}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0;height:100%;min-height:100%;overflow:hidden;
+  font-family:"Newsreader",Georgia,"Times New Roman",serif;color:var(--ink);
+  background:linear-gradient(170deg,var(--sky-a),var(--sky-b) 55%,var(--sky-c));
+  background-color:var(--sky-a);
+}
+.stage{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;padding:24px;text-align:center}
+.hint{font-family:"Caveat",cursive,"Segoe Script",sans-serif;font-size:1.7rem;color:var(--label);margin:0;line-height:1.2}
+
+/* feathers */
+.feather{position:absolute;top:-40px;width:14px;height:44px;border-radius:100% 0 100% 0;background:linear-gradient(135deg,var(--peri),transparent 85%);opacity:.5;animation:fall linear infinite}
+.feather:nth-child(1){left:12%;animation-duration:19s;animation-delay:-3s}
+.feather:nth-child(2){left:38%;animation-duration:24s;animation-delay:-11s;transform:scale(.7)}
+.feather:nth-child(3){left:63%;animation-duration:21s;animation-delay:-7s}
+.feather:nth-child(4){left:86%;animation-duration:26s;animation-delay:-15s;transform:scale(.8)}
+@keyframes fall{0%{transform:translate(0,-60px) rotate(0)}50%{transform:translate(40px,55vh) rotate(160deg)}100%{transform:translate(-20px,115vh) rotate(320deg)}}
+
+/* envelope */
+.env{position:relative;width:min(320px,80vw);aspect-ratio:3/2;border:0;padding:0;background:var(--env);border-radius:6px;cursor:pointer;
+  box-shadow:0 22px 50px rgba(10,8,30,.35);perspective:900px;transition:transform .25s ease;font:inherit}
+.env:hover{transform:translateY(-4px)}
+.env:focus-visible{outline:3px solid var(--rose);outline-offset:6px}
+.env .back{position:absolute;inset:0;border-radius:6px;background:linear-gradient(var(--env),var(--env-deep))}
+.env .pocket{position:absolute;inset:0;border-radius:6px;background:var(--env);
+  clip-path:polygon(0 0,50% 58%,100% 0,100% 100%,0 100%);filter:drop-shadow(0 -2px 3px rgba(80,40,90,.18))}
+.env .pocket::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,var(--env-deep),transparent 60%)}
+.env .flap{position:absolute;left:0;right:0;top:0;height:58%;background:var(--env-deep);border-radius:6px 6px 0 0;
+  clip-path:polygon(0 0,100% 0,50% 100%);transform-origin:top;transition:transform .7s cubic-bezier(.5,0,.2,1);z-index:3}
+.env .seal{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;z-index:4;
+  background:radial-gradient(circle at 35% 30%,#f0a1b3,var(--rose) 60%,#b9566f);display:grid;place-items:center;
+  box-shadow:0 3px 8px rgba(120,30,60,.4);transition:opacity .3s}
+.env .seal svg{width:22px;height:22px;fill:#fff}
+.env .peek{position:absolute;left:8%;right:8%;top:10%;height:70%;background:var(--paper);border-radius:4px;z-index:1;transition:transform .7s ease .15s}
+.env.opening .flap{transform:rotateX(180deg);z-index:0}
+.env.opening .seal{opacity:0}
+.env.opening .peek{transform:translateY(-34%)}
+
+/* letter modal */
+.scrim{position:fixed;inset:0;background:var(--scrim);display:none;align-items:center;justify-content:center;
+  padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px));z-index:10;
+  backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+.scrim.show{display:flex}
+.letter{position:relative;width:min(640px,100%);max-height:100%;display:flex;flex-direction:column;background:var(--paper);border-radius:10px;
+  box-shadow:0 30px 80px rgba(8,6,24,.5);transform-origin:50% 100%;animation:pop .6s cubic-bezier(.2,1.2,.3,1) both}
+@keyframes pop{from{opacity:0;transform:translateY(60px) scale(.82) rotate(-2deg)}to{opacity:1;transform:none}}
+.letter::before{content:"";position:absolute;left:0;right:0;top:0;height:6px;border-radius:10px 10px 0 0;background:linear-gradient(90deg,var(--peri),var(--rose))}
+.close{position:absolute;top:12px;right:12px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(58,35,64,.08);color:var(--ink);font-size:1.4rem;line-height:1;cursor:pointer;z-index:2}
+.close:hover{background:rgba(58,35,64,.16)}
+.close:focus-visible{outline:3px solid var(--rose)}
+.scroll{overflow-y:auto;padding:46px clamp(22px,6vw,56px) 40px;-webkit-overflow-scrolling:touch}
+.scroll h2{font-family:"Caveat",cursive,"Segoe Script",sans-serif;font-weight:700;font-size:2.6rem;margin:0 0 18px;color:var(--rose);line-height:1}
+.scroll p{font-size:1.14rem;line-height:1.75;margin:0 0 1.05em;max-width:62ch}
+.scroll p.k{font-style:italic;font-weight:500;font-size:1.3rem;color:var(--ink);padding-left:14px;border-left:3px solid var(--peri)}
+.scroll p.end{font-family:"Caveat",cursive,"Segoe Script",sans-serif;font-size:1.9rem;line-height:1.3;color:var(--rose);margin-top:1.4em}
+.scroll .gap{height:10px}
+.song{margin:0 0 28px;padding-bottom:22px;border-bottom:1px solid rgba(58,35,64,.14)}
+.song iframe{display:block;border:0;border-radius:12px;margin:0 0 10px;max-width:62ch;color-scheme:light}
+.scroll .song p.songline{font-family:"Caveat",cursive,"Segoe Script",sans-serif;font-size:1.5rem;color:var(--rose);margin:0 0 8px;line-height:1.2}
+.songlink{font-size:.95rem;color:var(--ink-soft);text-underline-offset:3px}
+.songlink:focus-visible{outline:3px solid var(--rose);outline-offset:3px}
+
+@media (prefers-reduced-motion:reduce){
+  .feather{animation:none;display:none}
+  .letter{animation:none}
+  .env .flap,.env .peek,.env{transition:none}
+}
+</style>
+</head>
+<body>
+<div aria-hidden="true">
+  <span class="feather"></span><span class="feather"></span><span class="feather"></span><span class="feather"></span>
+</div>
+
+<main class="stage">
+  <p class="hint">I wrote you something. Tap to open.</p>
+  <button class="env" id="env" aria-label="Open the letter">
+    <span class="back"></span>
+    <span class="peek"></span>
+    <span class="pocket"></span>
+    <span class="flap"></span>
+    <span class="seal"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 2.7 5 6 5c2 0 3.4 1.1 4.2 2.5L12 10l1.8-2.5C14.6 6.1 16 5 18 5c3.3 0 5.1 3.400 3.600 6.800C19.500 16.400 12 21 12 21z"/></svg></span>
+  </button>
+</main>
+
+<div class="scrim" id="scrim">
+  <article class="letter" role="dialog" aria-modal="true" aria-labelledby="hi" tabindex="-1" id="letter">
+    <button class="close" id="close" aria-label="Close the letter">&times;</button>
+    <div class="scroll">
+      <h2 id="hi">Baby,</h2>
+
+      <div class="song">
+        <p class="songline">Press play, then read.</p>
+        <iframe src="https://open.spotify.com/embed/track/4p0Lf5VRuU5UMvprWAVZTY" title="Song for you on Spotify" width="100%" height="152" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+        <a class="songlink" href="https://open.spotify.com/track/4p0Lf5VRuU5UMvprWAVZTY" target="_blank" rel="noopener">Open the song in Spotify</a>
+      </div>
+
+      <p>Sometimes I wonder how someone could come into my life and slowly change the way I see everything.</p>
+      <p>Before you, my mind was always so chaotic. There were so many thoughts fighting inside my head, so many things I worried about, and so many moments when I felt like everything was becoming too heavy. But then you came.</p>
+      <p>You became my calm in the middle of all that noise. You became the light I look for when everything feels dark. When my thoughts become too loud, somehow, just knowing that I have you makes everything feel a little lighter.</p>
+      <p class="k">You feel like a feather in a world that constantly feels heavy.</p>
+      <p>And maybe that's why our relationship means so much to me.</p>
+      <p>We're not perfect. We've had our arguments, misunderstandings, moments when our pride gets in the way, and times when we don't understand each other. Sometimes loving each other feels like being on a roller coaster—there are moments when we're so high, feeling like everything is perfect, and moments when we're falling and wondering if we'll be okay.</p>
+      <p>But even after all the ups and downs, I'm still here.</p>
+      <p class="k">And I still choose you.</p>
+      <p>That's what I want you to understand. I don't choose you only when things are easy. I choose you even when things are difficult. I choose you when we're okay, and I choose you when we're trying to fix something. I choose you even when my pride tells me to stay quiet.</p>
+      <p>Because you're not just someone I love.</p>
+      <p class="k">You became my why.</p>
+      <p>You became one of the reasons I keep trying, keep growing, and keep looking forward to tomorrow. You made me realize that maybe love isn't supposed to make life perfect. Maybe it's supposed to make the difficult parts worth going through with someone.</p>
+      <p>And somehow, you made me feel lovable.</p>
+      <p>You made me feel like maybe I wasn't too difficult to love. Like maybe I was worthy of being chosen, understood, cared for, and stayed for. You showed me a kind of love that made me want to become a better version of myself—not because you asked me to, but because loving you makes me want to be better.</p>
+      <p>And baby, I want you to know something.</p>
+      <p>I don't want another woman.</p>
+      <p>I don't look at you and think that you're simply someone I'm currently with. I look at you and see someone I genuinely want in my future.</p>
+      <p class="k">You're the first girl I chose with the thought of forever.</p>
+      <p>Not because I know exactly what the future will look like, but because when I imagine my future, I want you somewhere in it.</p>
+      <p>I know sometimes my actions can make you doubt that.</p>
+      <p>I'm sorry for the times when I deactivated my social media and made you feel like maybe I was disappearing or ghosting you. I understand why that could have hurt or confused you. I never wanted you to feel like I was abandoning you.</p>
+      <p>Sometimes I don't know how to deal with everything happening inside my head, so I distance myself instead of explaining what's wrong.</p>
+      <p>But disappearing doesn't mean I stopped loving you.</p>
+      <p>And silence doesn't mean I stopped choosing you.</p>
+      <p>If anything, there are moments when I'm quiet because I'm scared.</p>
+      <p>I'm scared that one day you'll get tired of me.</p>
+      <p>I'm scared you'll get tired of my situation, of my problems, of the things I have to deal with, especially with college, finances, and everything I'm trying to figure out in my life.</p>
+      <p>Sometimes I wonder if I'm giving you enough.</p>
+      <p>Sometimes I wonder if my life is too complicated for you.</p>
+      <p>And one of my biggest fears is that while I'm trying so hard to build a future, I might somehow lose the person I wanted to build that future with.</p>
+      <p>I don't want that person to be you.</p>
+      <p>I don't want to wake up one day and realize that while I was busy trying to fix my life, I lost the person who made the difficult days easier.</p>
+      <p>That's why I want to keep trying.</p>
+      <p>I know I still have so much to learn. I know I still make mistakes. I know there are times when I don't communicate properly or when my fears get the better of me.</p>
+      <p>But I'm willing to learn.</p>
+      <p>I'm willing to understand you.</p>
+      <p>I'm willing to communicate better.</p>
+      <p>I'm willing to make bawi.</p>
+      <p>Even with something as simple as the Spidey wallet you gave me, you probably don't realize how much it meant to me. You remembered something I love. You gave me something connected to one of my favorite heroes, something that reminds me of you whenever I see it.</p>
+      <p>It's not about how expensive something is.</p>
+      <p>It's the thought behind it.</p>
+      <p>It's the fact that you thought of me.</p>
+      <p>And I want to give that same feeling back to you.</p>
+      <p>I want you to feel remembered.</p>
+      <p>I want you to feel chosen.</p>
+      <p>I want you to feel loved.</p>
+      <p>I want you to know that even when life gets heavy, you don't have to carry everything alone.</p>
+      <p>Because I want to be there.</p>
+      <p>Not just during the beautiful moments, but during the messy ones too.</p>
+      <p>During the arguments.</p>
+      <p>During the misunderstandings.</p>
+      <p>During the days when we're both tired.</p>
+      <p>During the days when everything feels uncertain.</p>
+      <p>I want to still be there.</p>
+      <p>Because at the end of every roller coaster ride, after every argument, after every misunderstanding, after every moment where our pride gets in the way, I still find myself coming back to the same answer:</p>
+      <p class="k">It's you.</p>
+      <p class="k">You're my calm.<br>You're my light.<br>You're my why.</p>
+      <p>You're the person who made me believe that I could be loved.</p>
+      <p>And you're the first girl I chose when I started thinking about forever.</p>
+      <p>So if you ever wonder whether I still choose you—</p>
+      <p class="k">I do.</p>
+      <p>I choose you today.</p>
+      <p>I'll choose you tomorrow.</p>
+      <p>And as long as we're both willing to keep choosing each other, I'll keep choosing us.</p>
+      <p class="end">I love you, baby.<br>More than I sometimes know how to explain.</p>
+    </div>
+  </article>
+</div>
+
+<script>
+(function(){
+  var env=document.getElementById('env'), scrim=document.getElementById('scrim'),
+      letter=document.getElementById('letter'), closeBtn=document.getElementById('close'),
+      reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function openLetter(){
+    env.classList.add('opening');
+    setTimeout(function(){
+      scrim.classList.add('show');
+      letter.querySelector('.scroll').scrollTop=0;
+      letter.focus();
+    }, reduce?0:750);
+  }
+  function closeLetter(){
+    scrim.classList.remove('show');
+    env.classList.remove('opening');
+    env.focus();
+  }
+  env.addEventListener('click',openLetter);
+  closeBtn.addEventListener('click',closeLetter);
+  scrim.addEventListener('click',function(e){ if(e.target===scrim) closeLetter(); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape' && scrim.classList.contains('show')) closeLetter(); });
+})();
+</script>
+</body>
+</html>
